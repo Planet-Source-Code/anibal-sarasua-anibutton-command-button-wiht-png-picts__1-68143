@@ -1,0 +1,91 @@
+VERSION 5.00
+Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "ComDlg32.ocx"
+Begin VB.PropertyPage ppImagen 
+   Caption         =   "Picture"
+   ClientHeight    =   3165
+   ClientLeft      =   0
+   ClientTop       =   0
+   ClientWidth     =   3210
+   PaletteMode     =   0  'Halftone
+   ScaleHeight     =   3165
+   ScaleWidth      =   3210
+   Begin VB.CommandButton cmdImportar 
+      Caption         =   "&Import"
+      Height          =   375
+      Left            =   120
+      TabIndex        =   1
+      Top             =   2640
+      Width           =   1095
+   End
+   Begin VB.PictureBox Picture1 
+      BorderStyle     =   0  'None
+      Height          =   2295
+      Left            =   120
+      ScaleHeight     =   2295
+      ScaleWidth      =   2775
+      TabIndex        =   0
+      Top             =   120
+      Width           =   2775
+   End
+   Begin MSComDlg.CommonDialog CommonDialog1 
+      Left            =   3720
+      Top             =   1560
+      _ExtentX        =   847
+      _ExtentY        =   847
+      _Version        =   393216
+   End
+End
+Attribute VB_Name = "ppImagen"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = True
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = True
+Dim mImagen As New c32bppDIB
+Private Sub Importar()
+    Dim mB() As Byte
+    With SelectedControls(0)
+        Test = mImagen.SaveToStream(mB())
+        .Imagen = mB()
+    End With
+End Sub
+Private Function GetImageFromBrowser() As String
+    Dim mB() As Byte
+    
+    With CommonDialog1
+        .Flags = cdlOFNExplorer Or cdlOFNFileMustExist
+        .Filter = "Images|*.bmp;*.gif;*.jpg;*.ico;*.png;*.wmf;*.emf;*.cur;*.jpeg|" & _
+            "Bitmaps|*.bmp|GIF|*.gif|Icon|*.ico;*.cur|JPG|*.jpg;*.jpeg|" & _
+            "Metafile|*.wmf;*emf|PNG|*.png|"
+        .CancelError = True
+    End With
+    On Error GoTo ExitRoutine
+    CommonDialog1.ShowOpen
+    sFile = CommonDialog1.FileName
+    If sFile <> "" Then
+       mImagen.LoadPicture_File (sFile)
+       mImagen.Render Picture1.hDC
+       With SelectedControls(0)
+           Test = mImagen.SaveToStream(mB())
+           .Imagen = mB()
+       End With
+       GetImageFromBrowser = sFile
+    Else
+       GetImageFromBrowser = ""
+    End If
+    mImagen = Nothing
+ExitRoutine:
+End Function
+
+Private Sub cmdVer_Click()
+    Picture1.Cls
+    Text1.Text = GetImageFromBrowser
+End Sub
+
+Private Sub cmdImportar_Click()
+    Call GetImageFromBrowser
+End Sub
+
+Private Sub PropertyPage_Paint()
+       mImagen.Render Picture1.hDC
+End Sub
+
